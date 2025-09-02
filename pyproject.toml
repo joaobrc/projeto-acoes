@@ -6,12 +6,39 @@ authors = [
     {name = "Joao",email = "joaobrc97@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13, <4.0"
 dependencies = [
+    "httpx (>=0.28.1,<0.29.0)",
+    "pandas (>=2.3.2,<3.0.0)",
+    "streamlit (>=1.49.1,<2.0.0)",
+    "sqlalchemy (>=2.0.43,<3.0.0)"
 ]
 
 [tool.poetry]
 packages = [{include = "projeto_acoes", from = "src"}]
+
+
+[tool.poetry.group.dev.dependencies]
+taskipy = "^1.14.1"
+ruff = "^0.12.11"
+pytest = "^8.4.1"
+pytest-cov = "^6.2.1"
+
+[tool.ruff]
+line-length = 79
+
+[tool.ruff.format]
+quote-style = 'single'
+
+[tool.pytest.ini_options]
+pythonpath = '.'
+addopts = '-p no:warnings'
+
+[tool.taskipy.tasks]
+format = 'ruff format .'
+pre_test = 'task format'
+test = 'pytest -s -x cov=projeto_acoes -vv'
+post_test = 'coverage html'
 
 
 [build-system]
