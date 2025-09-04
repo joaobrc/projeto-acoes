@@ -37,7 +37,7 @@ addopts = '-p no:warnings'
 [tool.taskipy.tasks]
 format = 'ruff format .'
 pre_test = 'task format'
-test = 'pytest -s -x cov=projeto_acoes -vv'
+test = 'pytest -s -x --cov=src.projeto_acoes -vv'
 post_test = 'coverage html'
 
 
