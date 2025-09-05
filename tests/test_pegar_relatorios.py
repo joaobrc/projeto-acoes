@@ -7,5 +7,6 @@ def test_pegar_relatorios():
         data_inicial='2023-01-01',
         data_final='2023-12-31',
     )
-
+    relatorios = relatorios.dados_pagina_fundos()
+    print(relatorios)
     assert relatorios is not None
