@@ -1,5 +1,4 @@
 from httpx import Client
-from bs4 import BeautifulSoup
 
 
 class RelatorioFii:
@@ -13,10 +12,21 @@ class RelatorioFii:
         return f'RelatorioFii(sigla_fundo={self.sigla_fundo}, data_inicial={self.data_inicial}, data_final={self.data_final})'
 
     def dados_pagina_fundos(self):
-        fundos = {'GARE11': '37295919000160'}
-        url = f'https://fnet.bmfbovespa.com.br/fnet/publico/abrirGerenciadorDocumentosCVM?cnpjFundo={fundos.get(self.sigla_fundo)}'
-        response = self.cliente.get(url)
+        params = {
+            'd': '1',
+            's': '0',
+            'l': '15',
+            'o[0][dataEntrega]': 'desc',
+            'idCategoriaDocumento': '0',
+            'idTipoDocumento': '0',
+            'idEspecieDocumento': '0',
+            'isSession': 'true',
+            'cnpj': '45188176000157',
+            'cnpjFundo': '45188176000157',
+        }
+
+        url = 'https://fnet.bmfbovespa.com.br/fnet/publico/pesquisarGerenciadorDocumentosDados'
+        response = self.cliente.get(url, params=params)
         response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
         # Aqui você pode adicionar a lógica para extrair os dados desejados da página
-        return soup.prettify()
+        return response.json()
