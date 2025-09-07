@@ -1,4 +1,5 @@
 from src.projeto_acoes.pegar_relatorios import RelatorioFii
+import json
 
 
 def test_pegar_relatorios():
@@ -8,5 +9,5 @@ def test_pegar_relatorios():
         data_final='2023-12-31',
     )
     relatorios = relatorios.dados_pagina_fundos()
-    print(relatorios)
+    print(json.dumps(relatorios, indent=2, ensure_ascii=False))
     assert relatorios is not None
