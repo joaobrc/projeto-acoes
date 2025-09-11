@@ -14,13 +14,11 @@ class CadastroFundos:
         nome_fundo: str,
         sigla_fundo: str,
         cnpj_fundo: str,
-        setor_fundo: str = None,
     ):
         fundo = FundosImobiliarios(
             nome=nome_fundo,
             sigla=sigla_fundo,
-            cnpj=cnpj_fundo,
-            setor=setor_fundo,
+            cnpj=cnpj_fundo
         )
         self.db.add(fundo)
         self.db.commit()
