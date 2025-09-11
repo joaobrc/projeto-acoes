@@ -1,57 +1,50 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey
-from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Mapped, registry
 
 
-Base = declarative_base()
+registro_tabelas = registry()
 
-class FundosImobiliarios(Base):
+@registro_tabelas.mapped_as_dataclass
+class FundosII:
+    
     __tablename__ = 'fundos_imobiliarios'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    sigla = Column(String, unique=True, nullable=False)
-    nome = Column(String, nullable=False)
-    setor = Column(String)
-    cnpj = Column(String, unique=True, nullable=False)
-    data_criacao = Column(Date)
-
-    # Relationship with documents
-    documentos = relationship("Documento", back_populates="fundo_relacionado")
-
+    
+    id: Mapped[int] = registro_tabelas.mapped_column(primary_key=True)
+    nome: Mapped[str]
+    sigla: Mapped[str] = registro_tabelas.mapped_column(unique=True)
+    cnpj: Mapped[str]
+    
     def __repr__(self):
-        return f"<FundoImobiliario(sigla='{self.sigla}', nome='{self.nome}', setor='{self.setor}', cnpj='{self.cnpj}', data_criacao='{self.data_criacao}')>"
+        return f"<FundoImobiliario(nome='{self.nome}', sigla='{self.sigla}', cnpj='{self.cnpj}')>"
 
-class Acoes(Base):
+
+@registro_tabelas.mapped_as_dataclass
+class Acoes:
+    
     __tablename__ = 'acoes'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    sigla = Column(String, unique=True, nullable=False)
-    nome = Column(String, nullable=False)
-    cnpj = Column(String, unique=True, nullable=False)
-    setor = Column(String)
-    data_criacao = Column(Date)
-
-    # Relationship with documents
-    documentos = relationship("Documento", back_populates="acao_relacionada")
+    
+    id: Mapped[int] = registro_tabelas.mapped_column(primary_key=True)
+    nome: Mapped[str]
+    sigla: Mapped[str] = registro_tabelas.mapped_column(unique=True)
+    cnpj: Mapped[str]
 
     def __repr__(self):
-        return f"<Acao(sigla='{self.sigla}', nome='{self.nome}', setor='{self.setor}', data_criacao='{self.data_criacao}')>"
+        return f"<Acao(nome='{self.nome}', sigla='{self.sigla}', cnpj='{self.cnpj}')>"
 
-class Documento(Base):
+
+@registro_tabelas.mapped_as_dataclass
+class Documentos:
+    
     __tablename__ = 'documentos'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    id_documento = Column(String, unique=True, nullable=False)
-    descricao = Column(String, nullable=False)
-    fundo = Column(String, nullable=False)
     
-    # Foreign keys - nullable to allow document to belong to either fund or stock
-    fundo_id = Column(Integer, ForeignKey('fundos_imobiliarios.id'), nullable=True)
-    acao_id = Column(Integer, ForeignKey('acoes.id'), nullable=True)
+    id: Mapped[int] = registro_tabelas.mapped_column(primary_key=True)
+    id_documento: Mapped[str] = registro_tabelas.mapped_column(unique=True)
+    titulo: Mapped[str]
+    sigla: Mapped[str]
+    id_sigla_fundo: Mapped[int] = registro_tabelas.mapped_column(
+        registro_tabelas.ForeignKey('fundos_imobiliarios.id')
+    )
+    id_sigla_acao: Mapped[int] = registro_tabelas.mapped_column(
+        registro_tabelas.ForeignKey('acoes.id')
+    )
+    dada_entrega: Mapped[str]
     
-    # Relationships
-    fundo_relacionado = relationship("FundosImobiliarios", back_populates="documentos")
-    acao_relacionada = relationship("Acoes", back_populates="documentos")
-
-    def __repr__(self):
-        return f"<Documento(id_documento='{self.id_documento}', descricao='{self.descricao}', fundo='{self.fundo}')>"

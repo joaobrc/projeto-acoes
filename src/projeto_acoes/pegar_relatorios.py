@@ -8,13 +8,19 @@ class CadastroFundos:
         self.db = SessionLocal()
         create_tables()
         pass
-    
-    def cadastrar_fundos(self, nome_fundo: str, sigla_fundo: str, cnpj_fundo: str, setor_fundo: str = None):
+
+    def cadastrar_fundos(
+        self,
+        nome_fundo: str,
+        sigla_fundo: str,
+        cnpj_fundo: str,
+        setor_fundo: str = None,
+    ):
         fundo = FundosImobiliarios(
             nome=nome_fundo,
             sigla=sigla_fundo,
             cnpj=cnpj_fundo,
-            setor=setor_fundo
+            setor=setor_fundo,
         )
         self.db.add(fundo)
         self.db.commit()
@@ -25,7 +31,11 @@ class CadastroFundos:
         return self.db.query(FundosImobiliarios).all()
 
     def get_fundo_por_sigla(self, sigla: str):
-        fundo = self.db.query(FundosImobiliarios).filter(FundosImobiliarios.sigla == sigla).first()
+        fundo = (
+            self.db.query(FundosImobiliarios)
+            .filter(FundosImobiliarios.sigla == sigla)
+            .first()
+        )
         if not fundo:
             raise ValueError(f'Fundo com sigla {sigla} não encontrado.')
         return fundo
@@ -55,11 +65,11 @@ class RelatorioFii:
         else:
             dados_documentos = []
             dados = response.json()
-            
+
             try:
                 # Get or create the fund
                 fundo = self._get_or_create_fundo(self)
-                
+
                 for item in dados.get('data', []):
                     doc_data = {
                         'id_documento': str(item.get('id')),
@@ -67,7 +77,7 @@ class RelatorioFii:
                         'fundo': item.get('descricaoFundo'),
                     }
                     dados_documentos.append(doc_data)
-                    
+
                     # Save to DB with relationship
                     documento = Documento(**doc_data)
                     documento.fundo_relacionado = fundo
@@ -83,7 +93,6 @@ class RelatorioFii:
 
     def dados_pagina_fundos(self):
         fundos = CadastroFundos().get_fundo_por_sigla(self.sigla_fundo)
-        breakpoint()
         self.params.update(
             {
                 'cnpj': fundos.cnpj,
@@ -98,4 +107,3 @@ class RelatorioFii:
         response.raise_for_status()
 
         return self._tratar_resposta(response)
-
