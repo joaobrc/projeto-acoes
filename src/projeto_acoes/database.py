@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from .model import Base
+from sqlalchemy.orm import Session
 
 # SQLite database URL
 DATABASE_URL = 'sqlite:///projeto_acoes.db'
@@ -9,17 +8,8 @@ DATABASE_URL = 'sqlite:///projeto_acoes.db'
 engine = create_engine(DATABASE_URL, echo=True)
 
 # Create session
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def get_db():
-    db = SessionLocal()
-    try:
+    with Session(engine) as db:
         yield db
-    finally:
-        db.close()
-
-
-# Create tables
-def create_tables():
-    Base.metadata.create_all(bind=engine)

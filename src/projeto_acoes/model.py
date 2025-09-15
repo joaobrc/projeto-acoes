@@ -1,30 +1,34 @@
-from sqlalchemy.orm import Mapped, registry
+from sqlalchemy.orm import Mapped, registry, mapped_column
+from sqlalchemy import ForeignKey
 
 
 registro_tabelas = registry()
 
+
 @registro_tabelas.mapped_as_dataclass
 class FundosII:
-    
     __tablename__ = 'fundos_imobiliarios'
-    
-    id: Mapped[int] = registro_tabelas.mapped_column(primary_key=True)
+
+    id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=True, init=False
+    )
     nome: Mapped[str]
-    sigla: Mapped[str] = registro_tabelas.mapped_column(unique=True)
+    sigla: Mapped[str] = mapped_column(unique=True)
     cnpj: Mapped[str]
-    
+
     def __repr__(self):
         return f"<FundoImobiliario(nome='{self.nome}', sigla='{self.sigla}', cnpj='{self.cnpj}')>"
 
 
 @registro_tabelas.mapped_as_dataclass
 class Acoes:
-    
     __tablename__ = 'acoes'
-    
-    id: Mapped[int] = registro_tabelas.mapped_column(primary_key=True)
+
+    id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=True, init=False
+    )
     nome: Mapped[str]
-    sigla: Mapped[str] = registro_tabelas.mapped_column(unique=True)
+    sigla: Mapped[str] = mapped_column(unique=True)
     cnpj: Mapped[str]
 
     def __repr__(self):
@@ -32,19 +36,16 @@ class Acoes:
 
 
 @registro_tabelas.mapped_as_dataclass
-class Documentos:
-    
+class DocumentosFII:
     __tablename__ = 'documentos'
-    
-    id: Mapped[int] = registro_tabelas.mapped_column(primary_key=True)
-    id_documento: Mapped[str] = registro_tabelas.mapped_column(unique=True)
+
+    id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=True, init=False
+    )
+    id_documento: Mapped[str] = mapped_column(unique=True)
     titulo: Mapped[str]
-    sigla: Mapped[str]
-    id_sigla_fundo: Mapped[int] = registro_tabelas.mapped_column(
-        registro_tabelas.ForeignKey('fundos_imobiliarios.id')
+    descricao: Mapped[str]
+    id_sigla_fundo: Mapped[int] = mapped_column(
+        ForeignKey('fundos_imobiliarios.id'), nullable=True
     )
-    id_sigla_acao: Mapped[int] = registro_tabelas.mapped_column(
-        registro_tabelas.ForeignKey('acoes.id')
-    )
-    dada_entrega: Mapped[str]
-    
+    data_entrega: Mapped[str]
