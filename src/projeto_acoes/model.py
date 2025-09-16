@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Mapped, registry, mapped_column
 from sqlalchemy import ForeignKey
-
+from datetime import datetime
 
 registro_tabelas = registry()
 
@@ -48,4 +48,4 @@ class DocumentosFII:
     id_sigla_fundo: Mapped[int] = mapped_column(
         ForeignKey('fundos_imobiliarios.id'), nullable=True
     )
-    data_entrega: Mapped[str]
+    data_entrega: Mapped[datetime]
