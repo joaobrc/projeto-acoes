@@ -2,6 +2,7 @@ from httpx import Client
 from src.projeto_acoes.model import FundosII, Acoes, DocumentosFII
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from datetime import datetime
 
 
 class CadastroFundos:
@@ -50,7 +51,7 @@ class RelatorioFii:
         }
         self.cliente = Client()
 
-    def _tratar_resposta(self, fundo_id: int, fundo_sigla: str, response):
+    def _tratar_resposta(self, fundo_id: int, response):
         if response.status_code != 200:
             raise Exception(f'Erro na requisição: {response.status_code}')
         else:
@@ -63,7 +64,9 @@ class RelatorioFii:
                         'id_documento': str(item.get('id')),
                         'descricao': item.get('tipoDocumento'),
                         'titulo': item.get('descricaoFundo'),
-                        'data_entrega': item.get('dataEntrega'),
+                        'data_entrega': datetime.strptime(
+                            item.get('dataEntrega'), '%d/%m/%Y %H:%M'
+                        ),
                     }
                     doc_data['id_sigla_fundo'] = fundo_id
                     dados_documentos.append(doc_data)
@@ -81,21 +84,25 @@ class RelatorioFii:
             return dados_documentos
 
     def dados_pagina_fundos(self):
-        fundos = CadastroFundos(self.db)
-        fundo = fundos.get_fundo_por_sigla(sigla=self.sigla_fundo)
-        self.params.update(
-            {
-                'cnpj': fundo.cnpj,
-                'cnpjFundo': fundo.cnpj,
-                'dataInicio': self.data_inicial,
-                'dataFim': self.data_final,
-            }
-        )
+        try:
+            fundos = CadastroFundos(self.db)
+            fundo = fundos.get_fundo_por_sigla(sigla=self.sigla_fundo)
+            self.params.update(
+                {
+                    'cnpj': fundo.cnpj,
+                    'cnpjFundo': fundo.cnpj,
+                    'dataInicio': self.data_inicial,
+                    'dataFim': self.data_final,
+                }
+            )
 
-        url = 'https://fnet.bmfbovespa.com.br/fnet/publico/pesquisarGerenciadorDocumentosDados'
-        response = self.cliente.get(url, params=self.params)
-        response.raise_for_status()
+            url = 'https://fnet.bmfbovespa.com.br/fnet/publico/pesquisarGerenciadorDocumentosDados'
+            response = self.cliente.get(url, params=self.params)
+            response.raise_for_status()
 
-        return self._tratar_resposta(
-            fundo_id=fundo.id, fundo_sigla=fundo.sigla, response=response
-        )
+            return self._tratar_resposta(fundo_id=fundo.id, response=response)
+        except ValueError as e:
+            raise ValueError(f'Erro ao obter dados: {e}')
+        finally:
+            self.cliente.close()
+            self.db.close()
