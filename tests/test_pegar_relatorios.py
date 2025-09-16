@@ -10,5 +10,5 @@ def test_pegar_relatorios(db_session, fundos_teste):
         data_final='2023-12-31',
     )
     relatorios = relatorios.dados_pagina_fundos()
-    print(json.dumps(relatorios, indent=2, ensure_ascii=False))
+    print(relatorios)
     assert relatorios is not None
