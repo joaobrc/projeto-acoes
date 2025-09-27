@@ -12,3 +12,7 @@ def test_pegar_relatorios(db_session, fundos_teste):
     relatorios = relatorios.dados_pagina_fundos()
     print(relatorios)
     assert relatorios is not None
+
+
+def test_baxar_relatorio():
+    ...

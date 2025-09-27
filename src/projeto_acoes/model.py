@@ -37,7 +37,7 @@ class Acoes:
 
 @registro_tabelas.mapped_as_dataclass
 class DocumentosFII:
-    __tablename__ = 'documentos'
+    __tablename__ = 'documentos_fii'
 
     id: Mapped[int] = mapped_column(
         primary_key=True, autoincrement=True, init=False
@@ -49,3 +49,17 @@ class DocumentosFII:
         ForeignKey('fundos_imobiliarios.id'), nullable=True
     )
     data_entrega: Mapped[datetime]
+
+
+class DocumentosAcoes:
+    __tablename__ = 'documentos_acoes'
+
+    id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=True, init=False
+    )
+    id_documento: Mapped[str] = mapped_column(unique=True)
+    titulo: Mapped[str]
+    descricao: Mapped[str]
+    id_sigla_acao: Mapped[int] = mapped_column(
+        ForeignKey('acoes.id'), nullable=True
+    )

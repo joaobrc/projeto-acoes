@@ -106,3 +106,6 @@ class RelatorioFii:
         finally:
             self.cliente.close()
             self.db.close()
+
+    def baixar_relatotio(self, titulo: str):
+        ...
