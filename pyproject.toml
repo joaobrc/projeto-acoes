@@ -24,9 +24,11 @@ taskipy = "^1.14.1"
 ruff = "^0.12.11"
 pytest = "^8.4.1"
 pytest-cov = "^6.2.1"
+alembic = "^1.16.5"
 
 [tool.ruff]
 line-length = 79
+exclude = ['.venv', 'migracao']
 
 [tool.ruff.format]
 quote-style = 'single'
