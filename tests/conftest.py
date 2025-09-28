@@ -3,6 +3,7 @@ from pytest import fixture
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from src.projeto_acoes.model import registro_tabelas, FundosII
+from src.projeto_acoes.pegar_relatorios import RelatorioFii
 
 
 @fixture
@@ -33,3 +34,14 @@ def fundos_teste(db_session):
     db_session.commit()
     db_session.refresh(fundo)
     return fundo
+
+
+@fixture
+def documentos(db_session):
+    relatorios = RelatorioFii(
+        db=db_session,
+        sigla_fundo='GARE11',
+        data_inicial='2025-09-01',
+        data_final='2025-09-27',
+    )
+    relatorios.dados_pagina_fundos()
