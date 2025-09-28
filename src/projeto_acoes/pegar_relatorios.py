@@ -3,6 +3,8 @@ from src.projeto_acoes.model import FundosII, Acoes, DocumentosFII
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from datetime import datetime
+from base64 import b64decode
+import filetype
 
 
 class CadastroFundos:
@@ -30,12 +32,23 @@ class CadastroFundos:
             raise ValueError(f'Fundo com sigla {sigla} não encontrado.')
         return fundo
 
+    def get_documento_por_tipo(self, tipo: str):
+        documento = self.db.scalar(
+            select(DocumentosFII).where(DocumentosFII.tipo == tipo)
+        )
+        if not documento:
+            raise ValueError(f'Documento com tipo {tipo} não encontrado.')
+        return documento
 
-class RelatorioFii:
+    def get_documentos(self):
+        return self.db.scalars(select(DocumentosFII)).all()
+
+
+class RelatorioFii(CadastroFundos):
     def __init__(
         self, db: Session, sigla_fundo: str, data_inicial: str, data_final: str
     ):
-        self.db = db
+        super().__init__(db)
         self.sigla_fundo = sigla_fundo
         self.data_inicial = data_inicial
         self.data_final = data_final
@@ -57,12 +70,11 @@ class RelatorioFii:
         else:
             dados_documentos = []
             dados = response.json()
-
             try:
                 for item in dados.get('data', []):
                     doc_data = {
                         'id_documento': str(item.get('id')),
-                        'descricao': item.get('tipoDocumento'),
+                        'tipo': item.get('tipoDocumento'),
                         'titulo': item.get('descricaoFundo'),
                         'data_entrega': datetime.strptime(
                             item.get('dataEntrega'), '%d/%m/%Y %H:%M'
@@ -85,8 +97,7 @@ class RelatorioFii:
 
     def dados_pagina_fundos(self):
         try:
-            fundos = CadastroFundos(self.db)
-            fundo = fundos.get_fundo_por_sigla(sigla=self.sigla_fundo)
+            fundo = self.get_fundo_por_sigla(sigla=self.sigla_fundo)
             self.params.update(
                 {
                     'cnpj': fundo.cnpj,
@@ -99,7 +110,6 @@ class RelatorioFii:
             url = 'https://fnet.bmfbovespa.com.br/fnet/publico/pesquisarGerenciadorDocumentosDados'
             response = self.cliente.get(url, params=self.params)
             response.raise_for_status()
-
             return self._tratar_resposta(fundo_id=fundo.id, response=response)
         except ValueError as e:
             raise ValueError(f'Erro ao obter dados: {e}')
@@ -107,5 +117,28 @@ class RelatorioFii:
             self.cliente.close()
             self.db.close()
 
-    def baixar_relatotio(self, titulo: str):
-        ...
+    def baixar_documento(self, tipo: str):
+        documento = self.get_documento_por_tipo(tipo=tipo)
+        url_download = (
+            'https://fnet.bmfbovespa.com.br/fnet/publico/downloadDocumento'
+        )
+        params = {'id': documento.id_documento}
+        response = self.cliente.get(url_download, params=params)
+        if response.status_code == 200:
+            breakpoint()
+            dados = b64decode(response.content)
+            file_type = filetype.guess(dados)
+            if not file_type:
+                file_type = (
+                    'xml'  # Default to pdf if type cannot be determined
+                )
+            else:
+                file_type = file_type.extension
+            filename = f'{self.sigla_fundo}_{documento.tipo.replace(" ", "_")}.{file_type}'
+            with open(filename, 'wb') as file:
+                file.write(dados)
+            return filename
+        else:
+            raise Exception(
+                f'Erro ao baixar o relatório: {response.status_code}'
+            )

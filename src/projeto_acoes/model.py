@@ -44,7 +44,7 @@ class DocumentosFII:
     )
     id_documento: Mapped[str] = mapped_column(unique=True)
     titulo: Mapped[str]
-    descricao: Mapped[str]
+    tipo: Mapped[str]
     id_sigla_fundo: Mapped[int] = mapped_column(
         ForeignKey('fundos_imobiliarios.id'), nullable=True
     )
