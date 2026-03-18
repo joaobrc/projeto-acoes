@@ -11,7 +11,9 @@ dependencies = [
     "httpx (>=0.28.1,<0.29.0)",
     "pandas (>=2.3.2,<3.0.0)",
     "streamlit (>=1.49.1,<2.0.0)",
-    "sqlalchemy (>=2.0.43,<3.0.0)"
+    "sqlalchemy (>=2.0.43,<3.0.0)",
+    "beautifulsoup4 (>=4.13.5,<5.0.0)",
+    "filetype (>=1.2.0,<2.0.0)"
 ]
 
 [tool.poetry]
@@ -23,9 +25,11 @@ taskipy = "^1.14.1"
 ruff = "^0.12.11"
 pytest = "^8.4.1"
 pytest-cov = "^6.2.1"
+alembic = "^1.16.5"
 
 [tool.ruff]
 line-length = 79
+exclude = ['.venv', 'migracao']
 
 [tool.ruff.format]
 quote-style = 'single'
