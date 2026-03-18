@@ -125,7 +125,6 @@ class RelatorioFii(CadastroFundos):
         params = {'id': documento.id_documento}
         response = self.cliente.get(url_download, params=params)
         if response.status_code == 200:
-            breakpoint()
             dados = b64decode(response.content)
             file_type = filetype.guess(dados)
             if not file_type:
@@ -142,3 +141,23 @@ class RelatorioFii(CadastroFundos):
             raise Exception(
                 f'Erro ao baixar o relatório: {response.status_code}'
             )
+
+class RelatorioAcoes(CadastroFundos):
+    def __init__(
+        self, db: Session, sigla_acao: str, data_inicial: str, data_final: str
+    ):
+        super().__init__(db)
+        self.sigla_acao = sigla_acao
+        self.data_inicial = data_inicial
+        self.data_final = data_final
+        self.params = {
+            'd': '1',
+            's': '0',
+            'l': '15',
+            'o[0][dataEntrega]': 'desc',
+            'idCategoriaDocumento': '0',
+            'idTipoDocumento': '0',
+            'idEspecieDocumento': '0',
+            'isSession': 'true',
+        }
+        self.cliente = Client()
