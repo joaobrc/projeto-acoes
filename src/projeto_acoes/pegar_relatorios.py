@@ -92,6 +92,7 @@ class RelatorioFii(CadastroFundos):
                 raise e
             finally:
                 self.db.close()
+            print(ok)
 
             return dados_documentos
 
