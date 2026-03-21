@@ -1,5 +1,6 @@
 from httpx import Client
 from src.projeto_acoes.model import FundosII, Acoes, DocumentosFII
+from src.config.config import get_links_config
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from datetime import datetime
@@ -62,7 +63,8 @@ class RelatorioFii(CadastroFundos):
             'idEspecieDocumento': '0',
             'isSession': 'true',
         }
-        self.cliente = Client()
+        self.cliente = Client(timeout=None)
+        self.get_links = get_links_config()
 
     def _tratar_resposta(self, fundo_id: int, response):
         if response.status_code != 200:
@@ -92,7 +94,6 @@ class RelatorioFii(CadastroFundos):
                 raise e
             finally:
                 self.db.close()
-            print(ok)
 
             return dados_documentos
 
@@ -108,7 +109,7 @@ class RelatorioFii(CadastroFundos):
                 }
             )
 
-            url = 'https://fnet.bmfbovespa.com.br/fnet/publico/pesquisarGerenciadorDocumentosDados'
+            url = self.get_links.get_fnet_consulta_url()
             response = self.cliente.get(url, params=self.params)
             response.raise_for_status()
             return self._tratar_resposta(fundo_id=fundo.id, response=response)
@@ -120,9 +121,7 @@ class RelatorioFii(CadastroFundos):
 
     def baixar_documento(self, tipo: str):
         documento = self.get_documento_por_tipo(tipo=tipo)
-        url_download = (
-            'https://fnet.bmfbovespa.com.br/fnet/publico/downloadDocumento'
-        )
+        url_download = self.get_links.get_fnet_download_url()
         params = {'id': documento.id_documento}
         response = self.cliente.get(url_download, params=params)
         if response.status_code == 200:
