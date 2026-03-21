@@ -64,6 +64,7 @@ class RelatorioFii(CadastroFundos):
             'isSession': 'true',
         }
         self.cliente = Client(timeout=None)
+        self.get_links = get_links_config()
 
     def _tratar_resposta(self, fundo_id: int, response):
         if response.status_code != 200:
@@ -97,7 +98,6 @@ class RelatorioFii(CadastroFundos):
             return dados_documentos
 
     def dados_pagina_fundos(self):
-        get_links = get_links_config()
         try:
             fundo = self.get_fundo_por_sigla(sigla=self.sigla_fundo)
             self.params.update(
@@ -109,7 +109,7 @@ class RelatorioFii(CadastroFundos):
                 }
             )
 
-            url = get_links.get_fnet_consulta_url()
+            url = self.get_links.get_fnet_consulta_url()
             response = self.cliente.get(url, params=self.params)
             response.raise_for_status()
             return self._tratar_resposta(fundo_id=fundo.id, response=response)
@@ -121,9 +121,7 @@ class RelatorioFii(CadastroFundos):
 
     def baixar_documento(self, tipo: str):
         documento = self.get_documento_por_tipo(tipo=tipo)
-        url_download = (
-            'https://fnet.bmfbovespa.com.br/fnet/publico/downloadDocumento'
-        )
+        url_download = self.get_links.get_fnet_download_url()
         params = {'id': documento.id_documento}
         response = self.cliente.get(url_download, params=params)
         if response.status_code == 200:
