@@ -1,5 +1,5 @@
 import streamlit as st
-from src.projeto_acoes.pegar_relatorios import RelatorioFii
+from projeto_acoes.pegar_relatorios import RelatorioFii
 
 st.title("Doc Ações")
 
