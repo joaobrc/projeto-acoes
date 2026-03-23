@@ -43,6 +43,7 @@ format = 'ruff format .'
 pre_test = 'task format'
 test = 'pytest -s -x --cov=src.projeto_acoes -vv'
 post_test = 'coverage html'
+run = 'streamlit run src/streamlit/app.py'
 
 
 [build-system]
