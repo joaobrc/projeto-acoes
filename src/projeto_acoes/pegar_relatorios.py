@@ -1,6 +1,6 @@
 from httpx import Client
-from src.projeto_acoes.model import FundosII, Acoes, DocumentosFII
-from src.config.config import get_links_config
+from projeto_acoes.model import FundosII, Acoes, DocumentosFII
+from config.config import get_links_config
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from datetime import datetime
