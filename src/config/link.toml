@@ -1,8 +1,0 @@
-[fnet]
-base_url = "https://fnet.bmfbovespa.com.br"
-
-[fnet.consulta]
-pesquisar_documentos = "https://fnet.bmfbovespa.com.br/fnet/publico/pesquisarGerenciadorDocumentosDados"
-
-[fnet.download]
-documento = "https://fnet.bmfbovespa.com.br/fnet/publico/downloadDocumento"
