@@ -1,8 +1,9 @@
 from sqlalchemy import create_engine
+from config.config import get_links_config
 from sqlalchemy.orm import Session
 
 # SQLite database URL
-DATABASE_URL = 'sqlite:///projeto_acoes.db'
+DATABASE_URL = get_links_config().get_uri_db()
 
 # Create engine
 engine = create_engine(DATABASE_URL, echo=True)
