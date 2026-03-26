@@ -13,6 +13,22 @@ def get_fundos():
     return [{'Nome': fundo.nome, 'Sigla': fundo.sigla, 'CNPJ': fundo.cnpj} for fundo in cadastro.get_fundos()]
 
 
+with aba_relatorios:
+    st.header("Relatórios de Fundos")
+    fundo = st.selectbox("Selecione um fundo para visualizar o relatório",
+        options=get_fundos(), format_func=lambda x: x['Nome']
+    )
+    data_inicio = st.date_input("Data de Início", format="DD/MM/YYYY")
+    data_fim = st.date_input("Data de Fim", format="DD/MM/YYYY")
+    pesquisar = st.button("Pesquisar Relatório")
+    if pesquisar:
+        relatorio = RelatorioFii(db=next(get_db()),
+        sigla_fundo=fundo['Sigla'],
+        data_inicial=data_inicio,
+        data_final=data_fim)
+        dados_relatorio = relatorio.dados_pagina_fundos()
+        st.write(dados_relatorio)
+
 with aba_cadastra:
     dados_fundos = get_fundos()
     st.write(dados_fundos)
