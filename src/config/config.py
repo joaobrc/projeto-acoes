@@ -20,7 +20,7 @@ class LinkConfig:
         """
         if config_path is None:
             # Usa o arquivo padrão
-            config_file = Path(__file__).parent / 'link.toml'
+            config_file = Path(__file__).parent / 'links.toml'
         else:
             config_file = Path(config_path)
 
