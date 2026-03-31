@@ -21,7 +21,6 @@ class CadastroFundos:
         fundo = FundosII(nome=nome_fundo, sigla=sigla_fundo, cnpj=cnpj_fundo)
         self.db.merge(fundo)
         self.db.commit()
-        self.db.refresh(fundo)
         return fundo
 
     def get_fundos(self):
