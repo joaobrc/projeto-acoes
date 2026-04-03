@@ -43,3 +43,5 @@ with aba_cadastra:
             dados_fundos = get_fundos()
             st.write(dados_fundos)
             st.success(f"Fundo {fundo.nome} cadastrado com sucesso!")
+        st.cache_data.clear()
+        st.rerun()
