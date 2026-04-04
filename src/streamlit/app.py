@@ -13,6 +13,15 @@ def get_fundos():
     return [{'Nome': fundo.nome, 'Sigla': fundo.sigla, 'CNPJ': fundo.cnpj} for fundo in cadastro.get_fundos()]
 
 
+def colunas_fundos(coluna, dados_fundos):
+    with coluna:
+        st.metric(
+            label=dados_fundos['Nome'],
+            value=dados_fundos['Sigla'],
+            delta=dados_fundos['CNPJ']
+        )
+
+
 with aba_relatorios:
     st.header("Relatórios de Fundos")
     fundo = st.selectbox("Selecione um fundo para visualizar o relatório",
@@ -29,9 +38,15 @@ with aba_relatorios:
         dados_relatorio = relatorio.dados_pagina_fundos()
         st.write(dados_relatorio)
 
+
 with aba_cadastra:
     dados_fundos = get_fundos()
-    st.write(dados_fundos)
+    st.subheader("Fundos Cadastrados")
+    with st.container(horizontal=True, gap="medium"):
+        colunms = st.columns(len(dados_fundos),width=1000)
+        for coluna, fundo in enumerate(dados_fundos):
+            colunas_fundos(colunms[coluna], fundo)
+
     st.header("Cadastro de Fundos")
     nome_fundo = st.text_input("Nome do Fundo")
     sigla_fundo = st.text_input("Sigla do Fundo")
