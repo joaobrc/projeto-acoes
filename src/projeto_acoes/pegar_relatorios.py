@@ -40,8 +40,28 @@ class CadastroFundos:
             raise ValueError(f'Documento com tipo {tipo} não encontrado.')
         return documento
 
+    def get_documentos_por_fundo(self, fundo_id: int):
+        documentos_fundo = self.db.scalars(
+            select(DocumentosFII).where(DocumentosFII.id_sigla_fundo == fundo_id)
+        ).all()
+        return documentos_fundo
+
+
     def get_documentos(self):
         return self.db.scalars(select(DocumentosFII)).all()
+
+    def deletar_fundo(self, sigla: str):
+
+        fundo = self.get_fundo_por_sigla(sigla)
+        documentos = self.get_documentos_por_fundo(fundo_id=fundo.id)
+        if fundo:
+            if documentos:
+                for documento in documentos:
+                    self.db.delete(documento)
+            self.db.delete(fundo)
+            self.db.commit()
+            return True
+        return False
 
 
 class RelatorioFii(CadastroFundos):

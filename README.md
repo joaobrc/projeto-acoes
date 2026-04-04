@@ -76,6 +76,28 @@ projeto-acoes/
 
 ## 🚀 Como Usar
 
+### Executar Aplicação Streamlit
+
+```bash
+streamlit run src/streamlit/app.py
+```
+
+A aplicação oferece duas abas principais:
+
+#### Aba: Gerenciar Fundos
+- **Visualizar Fundos Cadastrados**: Exibe todos os fundos em cards com nome, sigla e CNPJ
+- **Cadastrar Novo Fundo**: Crie novos fundos fornecendo:
+  - Nome do Fundo
+  - Sigla (identificador único)
+  - CNPJ
+- **Deletar Fundo**: Remova fundos do sistema (ativa com toggle)
+
+#### Aba: Relatórios de Fundos
+- **Selecionar Fundo**: Escolha um fundo da lista
+- **Definir Período**: Especifique data inicial e final
+- **Pesquisar Relatórios**: Busca documentos no período especificado via API FNET
+- **Visualizar Resultados**: Exibe todos os documentos encontrados
+
 ### Executar os Testes
 
 ```bash
@@ -93,16 +115,164 @@ Isso irá:
 task format
 ```
 
-### Executar Aplicação Streamlit
+## 📚 Principais Funcionalidades
 
-```bash
-streamlit run app.py
-```
+### 1. Gerenciamento de Fundos Imobiliários
+- Cadastro de novos FIIs com nome, sigla e CNPJ
+- Listagem de todos os fundos cadastrados
+- Exclusão de fundos e seus documentos associados
 
-## 🗂️ Modelos Principais
+### 2. Busca de Relatórios via API
+- Integração com a API B3 (FNET) para recuperação de documentos
+- Filtro por período de datas customizáveis
+- Suporte a diferentes tipos de documentos (Informes Mensais, Relatórios Anuais, etc.)
+
+### 3. Gerenciamento de Documentos
+- Armazenamento de documentos em banco de dados SQL
+- Prevenção de duplicatas (verifica se documento já existe)
+- Download de documentos em formatos múltiplos (PDF, XML, etc.)
+- Rastreamento de data de entrega e tipo de documento
+
+### 4. Interface Web Interativa
+- Dashboard com abas para diferentes funcionalidades
+- Exibição visual de fundos em cards
+- Formulários intuitivos para cadastro e pesquisa
+- Mensagens de sucesso e tratamento de erros
+
+### 5. Banco de Dados
+- Persistência de dados com SQLAlchemy ORM
+- Suporte a migrações automáticas com Alembic
+- Relacionamento entre Fundos, Documentos e Ações
+
+## 🗂️ Modelos de Dados
 
 ### FundosII
-Representa fundos imobiliários com os campos:
+Representa fundos imobiliários com os seguintes campos:
+- `id` - Identificador único (autoincrement)
+- `nome` - Nome descritivo do fundo
+- `sigla` - Código único do fundo (usado como identificador na API)
+- `cnpj` - CNPJ do fundo
+
+### Acoes
+Modelo para gerenciamento de ações (em desenvolvimento):
+- `id` - Identificador único
+- `nome` - Nome da ação
+- `sigla` - Ticker da ação
+- `cnpj` - CNPJ da empresa
+
+### DocumentosFII
+Armazena documentos baixados de fundos imobiliários:
+- `id` - Identificador único
+- `id_documento` - ID do documento na API FNET (único)
+- `titulo` - Descrição/título do documento
+- `tipo` - Tipo de documento (Informe Mensal, Relatório Anual, etc.)
+- `id_sigla_fundo` - Referência foreign key para o fundo
+- `data_entrega` - Data e hora da entrega do documento
+
+### DocumentosAcoes
+Modelo para documentos de ações (estrutura pronta para uso futuro):
+- `id` - Identificador único
+- `id_documento` - ID único do documento
+- `titulo` - Título do documento
+- `descricao` - Descrição detalhada
+- `id_sigla_acao` - Referência para a ação relacionada
+
+## ⚙️ Recursos Avançados
+
+### Cache de Dados
+- A aplicação Streamlit utiliza `@st.cache_data` para otimizar a performance
+- Cache é automaticamente limpo após operações de cadastro/exclusão
+
+### Validações e Tratamentos de Erro
+- Prevenção de documentos duplicados no banco de dados
+- Confirmação antes de deletar fundos e documentos associados
+- Exibição de mensagens de alerta quando nenhum fundo está cadastrado
+- Tratamento robusto de erros nas requisições HTTP
+
+### Download de Documentos
+- Suporte a múltiplos formatos (PDF, XML, etc.)
+- Detecção automática do tipo de arquivo
+- Armazenamento local com nomenclatura automática
+
+## 📊 Cobertura de Testes
+
+O projeto utiliza Pytest com cobertura de código:
+```bash
+task test
+```
+
+Gera relatório de cobertura em:
+- Terminal: resumo de cobertura
+- `htmlcov/index.html`: relatório interativo em HTML
+
+## 🔄 Migrações de Banco de Dados
+
+As migrações são gerenciadas com Alembic:
+
+```bash
+# Aplicar migrações
+alembic upgrade head
+
+# Criar nova migração
+alembic revision --autogenerate -m "Descrição da mudança"
+```
+
+Versões disponíveis em `migracao/versions/`:
+- Migração inicial: estrutura base das tabelas
+- Atualização de tabela de documentos
+
+## 📋 Dependências do Projeto
+
+| Pacote | Versão | Propósito |
+|--------|--------|----------|
+| httpx | ^0.28.1 | Cliente HTTP assíncrono para requisições |
+| pandas | ^2.3.2 | Análise e processamento de dados |
+| streamlit | ^1.49.1 | Interface web interativa |
+| sqlalchemy | ^2.0.43 | ORM para banco de dados |
+| beautifulsoup4 | ^4.13.5 | Web scraping de dados |
+| filetype | ^1.2.0 | Detecção de tipo de arquivo |
+
+**Dev Dependencies:**
+- pytest: Testes automatizados
+- pytest-cov: Cobertura de testes
+- ruff: Formatting e linting
+- taskipy: Automação de tarefas
+- alembic: Migrações de banco de dados
+
+## 🚀 Comandos Disponíveis
+
+| Comando | Descrição |
+|---------|-----------|
+| `task format` | Formata código com Ruff |
+| `task test` | Executa testes com cobertura |
+| `task run` | Inicia aplicação Streamlit |
+
+## 📝 Configuração
+
+### Config
+O arquivo `src/config/config.py` centraliza configurações:
+- URLs de API (FNET)
+- URI do banco de dados
+- Parâmetros de requisição
+
+### Variáveis de Ambiente
+Configure no arquivo `.env` ou variáveis do sistema:
+- `DATABASE_URL` - conexão com banco de dados
+- URLs de API (se necessário)
+
+## 🔮 Próximas Melhorias
+
+- [ ] Implementar gerenciamento de Ações
+- [ ] Adicionar gráficos de análise de rentabilidade
+- [ ] Suporte a exportação de dados (CSV, Excel)
+- [ ] Dashboard com estatísticas agregadas
+- [ ] Histórico de cotações de FIIs
+- [ ] Alertas automáticos de novos relatórios
+- [ ] Autenticação de usuários
+
+## 📄 Licença
+
+Este projeto é desenvolvido como projeto de estudos.
 - `nome` - Nome do fundo
 - `sigla` - Sigla do fundo
 - `cnpj` - CNPJ do fundo
