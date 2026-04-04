@@ -2,9 +2,9 @@ import streamlit as st
 from projeto_acoes.pegar_relatorios import RelatorioFii, CadastroFundos
 from projeto_acoes.database import get_db
 
-st.title("Doc Ações")
+st.title("Gerenciamento de Fundos Imobiliários")
 
-aba_cadastra, aba_relatorios = st.tabs(["Cadastro de Fundos", "Relatórios de Fundos"])
+aba_gerenciar, aba_relatorios = st.tabs(["Gerenciar Fundos", "Relatórios de Fundos"])
 
 @st.cache_data
 def get_fundos():
@@ -39,24 +39,50 @@ with aba_relatorios:
         st.write(dados_relatorio)
 
 
-with aba_cadastra:
+with aba_gerenciar:
     dados_fundos = get_fundos()
     st.subheader("Fundos Cadastrados")
-    with st.container(horizontal=True, gap="medium"):
-        colunms = st.columns(len(dados_fundos),width=1000)
-        for coluna, fundo in enumerate(dados_fundos):
-            colunas_fundos(colunms[coluna], fundo)
+    if dados_fundos:
+        with st.container(horizontal=True, gap="medium"):
+            colunms = st.columns(len(dados_fundos),width=1000)
+            for coluna, fundo in enumerate(dados_fundos):
+                colunas_fundos(colunms[coluna], fundo)
 
-    st.header("Cadastro de Fundos")
-    nome_fundo = st.text_input("Nome do Fundo")
-    sigla_fundo = st.text_input("Sigla do Fundo")
-    cnpj_fundo = st.text_input("CNPJ do Fundo")
-    if st.button("Cadastrar Fundo"):
-        with st.spinner("Cadastrando fundo..."):
-            cadastro = CadastroFundos(db=next(get_db()))
-            fundo = cadastro.cadastrar_fundos(nome_fundo, sigla_fundo, cnpj_fundo)
-            dados_fundos = get_fundos()
-            st.write(dados_fundos)
-            st.success(f"Fundo {fundo.nome} cadastrado com sucesso!")
-        st.cache_data.clear()
-        st.rerun()
+    deletar = st.toggle("Deletar Fundo", value=False)
+    if not deletar:
+        st.header("Cadastro de Fundos")
+        nome_fundo = st.text_input("Nome do Fundo")
+        sigla_fundo = st.text_input("Sigla do Fundo")
+        cnpj_fundo = st.text_input("CNPJ do Fundo")
+        if st.button("Cadastrar Fundo"):
+            with st.spinner("Cadastrando fundo..."):
+                cadastro = CadastroFundos(db=next(get_db()))
+                fundo = cadastro.cadastrar_fundos(nome_fundo, sigla_fundo, cnpj_fundo)
+                dados_fundos = get_fundos()
+                st.write(dados_fundos)
+                st.success(f"Fundo {fundo.nome} cadastrado com sucesso!")
+            st.cache_data.clear()
+            st.rerun()
+    else:
+        if not dados_fundos:
+            st.warning("Nenhum fundo cadastrado para deletar.")
+        else:
+            st.header("Deletar Fundo Cadastrado")
+            sigla_fundo = st.selectbox(
+                "Selecione a sigla do fundo para deletar", 
+                options=[fundo['Sigla'] for fundo in dados_fundos]
+            )
+            st.warning(
+                f"Tem certeza que deseja deletar o fundo com sigla {sigla_fundo}?\nEsta ação não pode ser desfeita e deletará todos os documentos relacionados a este fundo.")
+            deletar_fundo = st.button("Deletar Fundo")
+            if deletar_fundo and sigla_fundo:
+                with st.spinner("Deletando fundo..."):
+                    cadastro = CadastroFundos(db=next(get_db()))
+                    sucesso = cadastro.deletar_fundo(sigla_fundo)
+                    if sucesso:
+                        st.success(f"Fundo com sigla {sigla_fundo} deletado com sucesso!")
+                    else:
+                        st.error(f"Erro ao deletar fundo com sigla {sigla_fundo}.")
+                st.cache_data.clear()
+                st.rerun()
+        
