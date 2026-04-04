@@ -42,16 +42,16 @@ class CadastroFundos:
 
     def get_documentos_por_fundo(self, fundo_id: int):
         documentos_fundo = self.db.scalars(
-            select(DocumentosFII).where(DocumentosFII.id_sigla_fundo == fundo_id)
+            select(DocumentosFII).where(
+                DocumentosFII.id_sigla_fundo == fundo_id
+            )
         ).all()
         return documentos_fundo
-
 
     def get_documentos(self):
         return self.db.scalars(select(DocumentosFII)).all()
 
     def deletar_fundo(self, sigla: str):
-
         fundo = self.get_fundo_por_sigla(sigla)
         documentos = self.get_documentos_por_fundo(fundo_id=fundo.id)
         if fundo:
@@ -85,7 +85,6 @@ class RelatorioFii(CadastroFundos):
         self.cliente = Client(timeout=None)
         self.get_links = get_links_config()
 
-
     def _tratar_resposta(self, fundo_id: int, response):
         if response.status_code != 200:
             raise Exception(f'Erro na requisição: {response.status_code}')
@@ -103,23 +102,28 @@ class RelatorioFii(CadastroFundos):
                         ),
                     }
                     doc_data['id_sigla_fundo'] = fundo_id
-                    print(f"Processando documento: {doc_data['titulo']} ({doc_data['tipo']})")
+                    print(
+                        f'Processando documento: {doc_data["titulo"]} ({doc_data["tipo"]})'
+                    )
                     dados_documentos.append(doc_data)
-                    
+
                     # Check if document already exists
                     documento_existente = self.db.scalar(
                         select(DocumentosFII).where(
-                            DocumentosFII.id_documento == doc_data['id_documento']
+                            DocumentosFII.id_documento
+                            == doc_data['id_documento']
                         )
                     )
-                    
+
                     if not documento_existente:
                         # Save to DB only if it doesn't exist
                         documento = DocumentosFII(**doc_data)
                         self.db.add(documento)
                         self.db.commit()
                     else:
-                        print(f"Documento {doc_data['id_documento']} já existe, pulando...")
+                        print(
+                            f'Documento {doc_data["id_documento"]} já existe, pulando...'
+                        )
             except Exception as e:
                 self.db.rollback()
                 raise e
