@@ -5,8 +5,8 @@ from projeto_acoes.database import get_db
 st.title('Gerenciamento de Fundos Imobiliários')
 
 
-aba_gerenciar, aba_relatorios, aba_fundos_cadastrados = st.tabs(
-    ['Gerenciar Fundos', 'Relatórios de Fundos', 'Fundos Cadastrados']
+aba_gerenciar, aba_relatorios, aba_fundos_cadastrados, aba_documentos = st.tabs(
+    ['Gerenciar Fundos', 'Relatórios de Fundos', 'Fundos Cadastrados', 'Documentos do Fundo']
 )
 
 
@@ -15,7 +15,7 @@ def get_fundos():
     db = next(get_db())
     cadastro = CadastroFundos(db)
     return [
-        {'Nome': fundo.nome, 'Sigla': fundo.sigla, 'CNPJ': fundo.cnpj}
+        {'Nome': fundo.nome, 'Sigla': fundo.sigla, 'CNPJ': fundo.cnpj, 'ID': fundo.id}
         for fundo in cadastro.get_fundos()
     ]
 
@@ -119,3 +119,21 @@ with aba_fundos_cadastrados:
                     colunas_fundos(colunms[coluna], fundo)
     else:
         st.warning('Nenhum fundo cadastrado.')
+
+
+with aba_documentos:
+    st.header('Documentos do Fundo')
+    sigla_fundo = st.selectbox(
+        'Selecione a sigla do fundo para visualizar os documentos',
+        options=[f"{fundo['ID']} - {fundo['Sigla']}"  for fundo in dados_fundos],
+    )
+    if sigla_fundo:
+        fundo_id = sigla_fundo.split(' - ')[0]
+        sigla_fundo = sigla_fundo.split(' - ')[1]
+        documentos = RelatorioFii(
+            db=next(get_db()),
+            sigla_fundo=sigla_fundo,
+            data_inicial=None,
+            data_final=None,
+        ).get_documentos_por_fundo(fundo_id=int(fundo_id))
+        st.write(documentos)
