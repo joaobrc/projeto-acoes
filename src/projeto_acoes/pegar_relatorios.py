@@ -32,12 +32,12 @@ class CadastroFundos:
             raise ValueError(f'Fundo com sigla {sigla} não encontrado.')
         return fundo
 
-    def get_documento_por_tipo(self, tipo: str):
+    def get_documento_por_id(self, id: int):
         documento = self.db.scalar(
-            select(DocumentosFII).where(DocumentosFII.tipo == tipo)
+            select(DocumentosFII).where(DocumentosFII.id == id)
         )
         if not documento:
-            raise ValueError(f'Documento com tipo {tipo} não encontrado.')
+            raise ValueError(f'Documento com ID {id} não encontrado.')
         return documento
 
     def get_documentos_por_fundo(self, fundo_id: int):
@@ -154,8 +154,8 @@ class RelatorioFii(CadastroFundos):
             self.cliente.close()
             self.db.close()
 
-    def baixar_documento(self, tipo: str):
-        documento = self.get_documento_por_tipo(tipo=tipo)
+    def baixar_documento(self, id: int):
+        documento = self.get_documento_por_id(id=id)
         url_download = self.get_links.get_fnet_download_url()
         params = {'id': documento.id_documento}
         response = self.cliente.get(url_download, params=params)
