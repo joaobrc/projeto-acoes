@@ -66,7 +66,7 @@ class LinkConfig:
     def get_fnet_consulta_url(self) -> str:
         """Retorna a URL de consulta de documentos FNET"""
         return self.get('fnet.consulta.pesquisar_documentos')
-    
+
     def get_uri_db(self) -> str:
         """Retorna a URI de conexão com o banco de dados"""
         return self.get('db.uri')
