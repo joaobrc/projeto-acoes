@@ -1,6 +1,7 @@
 import streamlit as st
 from projeto_acoes.pegar_relatorios import RelatorioFii, CadastroFundos
-from projeto_acoes.database import get_db
+from projeto_acoes.database import engine
+from sqlalchemy.orm import Session
 
 st.title('Gerenciamento de Fundos Imobiliários')
 
@@ -12,12 +13,12 @@ aba_gerenciar, aba_relatorios, aba_fundos_cadastrados, aba_documentos = st.tabs(
 
 @st.cache_data
 def get_fundos():
-    db = next(get_db())
-    cadastro = CadastroFundos(db)
-    return [
-        {'Nome': fundo.nome, 'Sigla': fundo.sigla, 'CNPJ': fundo.cnpj, 'ID': fundo.id}
-        for fundo in cadastro.get_fundos()
-    ]
+    with Session(engine) as session:
+        cadastro = CadastroFundos(db=session)
+        return [
+            {'Nome': fundo.nome, 'Sigla': fundo.sigla, 'CNPJ': fundo.cnpj, 'ID': fundo.id}
+            for fundo in cadastro.get_fundos()
+        ]
 
 
 def colunas_fundos(coluna, dados_fundos):
@@ -40,13 +41,14 @@ with aba_relatorios:
     data_fim = st.date_input('Data de Fim', format='DD/MM/YYYY')
     pesquisar = st.button('Pesquisar Relatório')
     if pesquisar:
-        relatorio = RelatorioFii(
-            db=next(get_db()),
-            sigla_fundo=fundo['Sigla'],
-            data_inicial=data_inicio,
-            data_final=data_fim,
+        with Session(engine) as session:
+            relatorio = RelatorioFii(
+                db=session,
+                sigla_fundo=fundo['Sigla'],
+                data_inicial=data_inicio,
+                data_final=data_fim,
         )
-        dados_relatorio = relatorio.dados_pagina_fundos()
+            dados_relatorio = relatorio.dados_pagina_fundos()
         st.write(dados_relatorio)
 
 
@@ -70,14 +72,12 @@ with aba_gerenciar:
         sigla_fundo = st.text_input('Sigla do Fundo')
         cnpj_fundo = st.text_input('CNPJ do Fundo')
         if st.button('Cadastrar Fundo'):
-            with st.spinner('Cadastrando fundo...'):
-                cadastro = CadastroFundos(db=next(get_db()))
-                fundo = cadastro.cadastrar_fundos(
-                    nome_fundo, sigla_fundo, cnpj_fundo
-                )
-                dados_fundos = get_fundos()
-                st.write(dados_fundos)
-                st.success(f'Fundo {fundo.nome} cadastrado com sucesso!')
+            with Session(engine) as session:
+                with st.spinner('Cadastrando fundo...'):
+                    cadastro = CadastroFundos(session)
+                    fundo = cadastro.cadastrar_fundos(
+                        nome_fundo, sigla_fundo, cnpj_fundo
+                    )
             st.cache_data.clear()
             st.rerun()
     else:
@@ -94,17 +94,10 @@ with aba_gerenciar:
             )
             deletar_fundo = st.button('Deletar Fundo')
             if deletar_fundo and sigla_fundo:
-                with st.spinner('Deletando fundo...'):
-                    cadastro = CadastroFundos(db=next(get_db()))
-                    sucesso = cadastro.deletar_fundo(sigla_fundo)
-                    if sucesso:
-                        st.success(
-                            f'Fundo com sigla {sigla_fundo} deletado com sucesso!'
-                        )
-                    else:
-                        st.error(
-                            f'Erro ao deletar fundo com sigla {sigla_fundo}.'
-                        )
+                with Session(engine) as session:
+                    with st.spinner('Deletando fundo...'):
+                        cadastro = CadastroFundos(db=session)
+                        cadastro.deletar_fundo(sigla_fundo)
                 st.cache_data.clear()
                 st.rerun()
 
@@ -130,10 +123,8 @@ with aba_documentos:
     if sigla_fundo:
         fundo_id = sigla_fundo.split(' - ')[0]
         sigla_fundo = sigla_fundo.split(' - ')[1]
-        documentos = RelatorioFii(
-            db=next(get_db()),
-            sigla_fundo=sigla_fundo,
-            data_inicial=None,
-            data_final=None,
-        ).get_documentos_por_fundo(fundo_id=int(fundo_id))
+        with Session(engine) as session:
+            documentos = CadastroFundos(
+                db=session,
+            ).get_documentos_por_fundo(fundo_id=int(fundo_id))
         st.write(documentos)
