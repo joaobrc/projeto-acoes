@@ -231,6 +231,7 @@ Versões disponíveis em `migracao/versions/`:
 | sqlalchemy | ^2.0.43 | ORM para banco de dados |
 | beautifulsoup4 | ^4.13.5 | Web scraping de dados |
 | filetype | ^1.2.0 | Detecção de tipo de arquivo |
+| pydantic | ^2.13.2 | Validação e modelagem de dados |
 
 **Dev Dependencies:**
 - pytest: Testes automatizados
@@ -270,18 +271,6 @@ Configure no arquivo `.env` ou variáveis do sistema:
 - [ ] Alertas automáticos de novos relatórios
 - [ ] Autenticação de usuários
 
-## 📄 Licença
-
-Este projeto é desenvolvido como projeto de estudos.
-- `nome` - Nome do fundo
-- `sigla` - Sigla do fundo
-- `cnpj` - CNPJ do fundo
-
-### Acoes
-Representa ações de investimento
-
-### DocumentosFII
-Armazena documentos de fundos imobiliários
 
 ## 📊 Exemplo de Uso
 
@@ -352,7 +341,7 @@ João - joaobrc97@gmail.com
 
 ## 📄 Licença
 
-Especificar licença do projeto
+Este projeto é desenvolvido como projeto de estudos.
 
 ## 🤝 Contribuindo
 
