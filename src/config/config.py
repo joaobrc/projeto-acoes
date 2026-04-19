@@ -66,6 +66,10 @@ class LinkConfig:
     def get_fnet_consulta_url(self) -> str:
         """Retorna a URL de consulta de documentos FNET"""
         return self.get('fnet.consulta.pesquisar_documentos')
+    
+    def get_fnet_cookies(self) -> str:
+        """Retorna a URL de consulta de documentos FNET"""
+        return self.get('fnet.consulta.abrir_genrenciador')
 
     def get_uri_db(self) -> str:
         """Retorna a URI de conexão com o banco de dados"""
@@ -123,7 +127,7 @@ class LinkConfig:
         return f'LinkConfig(path={self.config_path})'
 
 
-def get_links_config(config_path: str | None = None) -> LinkConfig:
+def     get_links_config(config_path: str | None = None) -> LinkConfig:
     """
     Factory function para criar uma instância de LinkConfig
 
