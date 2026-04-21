@@ -16,8 +16,8 @@ def get_fundos():
     with Session(engine) as session:
         cadastro = CadastroFundos(db=session)
         return [
-            {'Nome': fundo.nome, 'Sigla': fundo.sigla, 'CNPJ': fundo.cnpj, 'ID': fundo.id}
-            for fundo in cadastro.get_fundos()
+            {'Nome': f.nome, 'Sigla': f.sigla, 'CNPJ': f.cnpj, 'ID': f.id}
+            for f in cadastro.get_fundos()
         ]
 
 
@@ -49,7 +49,7 @@ with aba_relatorios:
                 data_final=data_fim,
         )
             dados_relatorio = relatorio.dados_pagina_fundos()
-        st.write(dados_relatorio)
+        st.dataframe(dados_relatorio)
 
 
 with aba_gerenciar:
@@ -127,4 +127,4 @@ with aba_documentos:
             documentos = CadastroFundos(
                 db=session,
             ).get_documentos_por_fundo(fundo_id=int(fundo_id))
-        st.write(documentos)
+        st.dataframe([doc.model_dump() for doc in documentos])
