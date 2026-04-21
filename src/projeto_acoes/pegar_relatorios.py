@@ -1,5 +1,10 @@
 from httpx import Client
 from projeto_acoes.model import FundosII, DocumentosFII
+from projeto_acoes.schema import (
+    SchemaFundosII,
+    SchemaDocumentosFII,
+    SchemaRelatorioFII,
+)
 from config.config import get_links_config
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -11,27 +16,16 @@ class CadastroFundos:
     def __init__(self, db: Session = None):
         self.db: Session = db
 
-    def cadastrar_fundos(
-        self,
-        nome_fundo: str,
-        sigla_fundo: str,
-        cnpj_fundo: str,
-    ):
-        fundo = FundosII(nome=nome_fundo, sigla=sigla_fundo, cnpj=cnpj_fundo)
-        self.db.merge(fundo)
-        self.db.commit()
-        return fundo
 
-    def get_fundos(self):
-        return self.db.scalars(select(FundosII)).all()
+    def _get_fundo_orm(self, sigla: str) -> FundosII:
 
-    def get_fundo_por_sigla(self, sigla: str):
         fundo = self.db.scalar(select(FundosII).where(FundosII.sigla == sigla))
         if not fundo:
             raise ValueError(f'Fundo com sigla {sigla} não encontrado.')
         return fundo
 
-    def get_documento_por_id(self, id: int):
+    def _get_documento_orm(self, id: int) -> DocumentosFII:
+
         documento = self.db.scalar(
             select(DocumentosFII).where(DocumentosFII.id == id)
         )
@@ -39,23 +33,67 @@ class CadastroFundos:
             raise ValueError(f'Documento com ID {id} não encontrado.')
         return documento
 
-    def get_documentos_por_fundo(self, fundo_id: int):
-        documentos_fundo = self.db.scalars(
+    def _get_documentos_fundo_orm(self, fundo_id: int) -> list[DocumentosFII]:
+
+        return self.db.scalars(
             select(DocumentosFII).where(
                 DocumentosFII.id_sigla_fundo == fundo_id
             )
         ).all()
-        return documentos_fundo
 
-    def get_documentos(self):
-        return self.db.scalars(select(DocumentosFII)).all()
+    def cadastrar_fundos(
+        self,
+        nome_fundo: str,
+        sigla_fundo: str,
+        cnpj_fundo: str,
+    ) -> SchemaFundosII:
 
-    def deletar_fundo(self, sigla: str):
-        fundo = self.get_fundo_por_sigla(sigla)
-        documentos = self.get_documentos_por_fundo(fundo_id=fundo.id)
-        if documentos:
-            for documento in documentos:
-                self.db.delete(documento)
+        fundo = FundosII(nome=nome_fundo, sigla=sigla_fundo, cnpj=cnpj_fundo)
+        self.db.merge(fundo)
+        self.db.commit()
+        self.db.refresh(fundo)
+        return SchemaFundosII.model_validate(fundo)
+
+    def get_fundos(self) -> list[SchemaFundosII]:
+
+        fundos = self.db.scalars(select(FundosII)).all()
+        return [SchemaFundosII.model_validate(f) for f in fundos]
+
+    def get_fundo_por_sigla(self, sigla: str) -> SchemaFundosII:
+
+        return SchemaFundosII.model_validate(self._get_fundo_orm(sigla))
+
+    def get_documento_por_id(self, id: int) -> SchemaDocumentosFII:
+
+        return SchemaDocumentosFII.model_validate(self._get_documento_orm(id))
+
+    def get_documentos_por_fundo(self, fundo_id: int) -> list[SchemaDocumentosFII]:
+
+        documentos = self._get_documentos_fundo_orm(fundo_id)
+        return [SchemaDocumentosFII.model_validate(d) for d in documentos]
+
+    def get_relatorio_fundo(self, fundo_id: int) -> str:
+
+        fundo = self.db.scalar(select(FundosII).where(FundosII.id == fundo_id))
+        if not fundo:
+            raise ValueError(f'Fundo com ID {fundo_id} não encontrado.')
+        documentos = self._get_documentos_fundo_orm(fundo_id)
+        relatorio = SchemaRelatorioFII.model_validate(
+            {'fundo': fundo, 'documentos': documentos}
+        )
+        return relatorio.model_dump_json(indent=4)
+
+    def get_documentos(self) -> list[SchemaDocumentosFII]:
+
+        documentos = self.db.scalars(select(DocumentosFII)).all()
+        return [SchemaDocumentosFII.model_validate(d) for d in documentos]
+
+    def deletar_fundo(self, sigla: str) -> None:
+
+        fundo = self._get_fundo_orm(sigla) 
+        documentos = self._get_documentos_fundo_orm(fundo.id)  
+        for documento in documentos:
+            self.db.delete(documento)
         self.db.delete(fundo)
         self.db.commit()
 
@@ -116,7 +154,6 @@ class RelatorioFii(CadastroFundos):
                 )
                 dados_documentos.append(doc_data)
 
-                # Check if document already exists
                 documento_existente = self.db.scalar(
                     select(DocumentosFII).where(
                         DocumentosFII.id_documento
@@ -125,7 +162,6 @@ class RelatorioFii(CadastroFundos):
                 )
 
                 if not documento_existente:
-                    # Save to DB only if it doesn't exist
                     documento = DocumentosFII(**doc_data)
                     self.db.add(documento)
                     self.db.commit()
@@ -143,7 +179,7 @@ class RelatorioFii(CadastroFundos):
         with Client(timeout=None, headers=self.headers, follow_redirects=True) as cliente:
             abrir_gerenciador = self.get_links.get_fnet_cookies()
             cliente.get(abrir_gerenciador)
-            fundo = self.get_fundo_por_sigla(sigla=self.sigla_fundo)
+            fundo = self._get_fundo_orm(sigla=self.sigla_fundo)  # ORM: precisa de .cnpj e .id
             data_inicio_fmt = self.data_inicial.strftime('%Y-%m-%d') if hasattr(self.data_inicial, 'strftime') else self.data_inicial
             data_fim_fmt = self.data_final.strftime('%Y-%m-%d') if hasattr(self.data_final, 'strftime') else self.data_final
 
@@ -161,8 +197,8 @@ class RelatorioFii(CadastroFundos):
             response.raise_for_status()
         return self._tratar_resposta(fundo_id=fundo.id, response=response)
 
-    def baixar_documento(self, id: int):
-        documento = self.get_documento_por_id(id=id)
+    def baixar_documento(self, id: int) -> str:
+        documento = self._get_documento_orm(id=id)  # ORM: precisa de .id_documento e .tipo
         url_download = self.get_links.get_fnet_download_url()
         params = {'id': documento.id_documento}
 
